@@ -5,17 +5,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.demoapp.ui.screens.HomeScreen
+import com.example.demoapp.ui.screens.auth.AuthScreen
 import com.example.demoapp.ui.screens.welcome.WelcomeScreen
-
-enum class Screen { Welcome, Home }
 
 @Composable
 fun AppNavGraph(navController: NavHostController, isFirstLaunch: Boolean) {
     NavHost(
         navController = navController,
-        startDestination = if (isFirstLaunch) Screen.Welcome.name else Screen.Home.name
+        // First time use, display Welcome screen for onboarding
+        startDestination = if (isFirstLaunch) Routes.welcome else Routes.auth
     ) {
-        composable(Screen.Welcome.name) { WelcomeScreen(navController) }
-        composable(Screen.Home.name) { HomeScreen() }
+        composable(Routes.welcome) { WelcomeScreen(navController) }
+        composable(Routes.auth) { AuthScreen(navController) }
+        composable(Routes.home) { HomeScreen() }
     }
 }

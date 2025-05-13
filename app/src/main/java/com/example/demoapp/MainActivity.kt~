@@ -34,7 +34,7 @@ class MainActivity : FragmentActivity() {
                 // 5. When loaded, update the flag to hide splash
                 if (isFirstLaunch != null) {
                     isDataLoaded.set(true)
-
+                    
                 AppNavGraph(navController, isFirstLaunch!!)
             }
         }

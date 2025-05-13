@@ -10,12 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.demoapp.R
 import com.example.demoapp.navigation.Routes
+import com.example.demoapp.utils.BiometricPromptDialog
 import com.example.demoapp.ui.components.AppImage
 import com.example.demoapp.ui.components.BodyText
 import com.example.demoapp.ui.components.PrimaryButton
@@ -23,30 +22,24 @@ import com.example.demoapp.ui.components.SecondaryButton
 import com.example.demoapp.ui.components.TitleText
 
 @Composable
-fun WelcomeScreen(
-    navController: NavController,
-    viewModel: WelcomeViewModel = viewModel()
-) {
+fun WelcomeScreen(navController: NavController, viewModel: WelcomeViewModel = viewModel()) {
     val context = LocalContext.current
-    val activity = context as? FragmentActivity ?: return
-    val biometricState by viewModel.biometricState.collectAsState()
-    val lifecycleOwner = LocalLifecycleOwner.current
+    var showBiometric by remember { mutableStateOf(false) }
 
-    // Handle biometric authentication trigger
-    DisposableEffect(lifecycleOwner, biometricState) {
-        if (biometricState is BiometricState.TriggerPrompt) {
-            viewModel.authenticate(activity)
-        }
-        onDispose {}
-    }
-
-    // Handle navigation on success
-    LaunchedEffect(biometricState) {
-        if (biometricState is BiometricState.Success) {
-            navController.navigate(Routes.home) {
-                popUpTo(Routes.welcome) { inclusive = true }
+    // Handle biometric prompt
+    if (showBiometric) {
+        BiometricPromptDialog(
+            onAuthSuccess = {
+                viewModel.handleAuthSuccess(context) {
+                    navController.navigate(Routes.home) {
+                        popUpTo(Routes.welcome) { inclusive = true }
+                    }
+                }
+            },
+            onAuthErrorOrCancel = {
+                showBiometric = false
             }
-        }
+        )
     }
 
     Column(
@@ -66,10 +59,14 @@ fun WelcomeScreen(
         )
         Spacer(modifier = Modifier.height(40.dp))
 
+        // User press Get started button to bring up the Auth prompt
         PrimaryButton(
             text = "Get started",
             onClick = {
-                viewModel.checkBiometricAndProceed(context)
+                viewModel.checkBiometricAndProceed(
+                    context = context,
+                    onGetStarted = { showBiometric = true },
+                )
             }
         )
         Spacer(modifier = Modifier.height(12.dp))
